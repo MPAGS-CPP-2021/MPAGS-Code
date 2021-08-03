@@ -12,3 +12,8 @@ target_include_directories(Catch INTERFACE ${CMAKE_CURRENT_LIST_DIR})
 add_executable(testCatch testCatch.cpp)
 target_link_libraries(testCatch PRIVATE Catch)
 add_test(NAME test-catch COMMAND testCatch)
+
+# Test TransformChar
+add_executable(testTransformChar testTransformChar.cpp)
+target_link_libraries(testTransformChar PRIVATE Catch MPAGSCipher)
+add_test(NAME test-transformchar COMMAND testTransformChar)
