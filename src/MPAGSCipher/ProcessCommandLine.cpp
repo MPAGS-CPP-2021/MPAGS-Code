@@ -83,6 +83,8 @@ bool processCommandLine(const std::vector<std::string>& cmdLineArgs,
                     settings.cipherType = CipherType::Caesar;
                 } else if (cmdLineArgs[i + 1] == "playfair") {
                     settings.cipherType = CipherType::Playfair;
+                } else if (cmdLineArgs[i + 1] == "vigenere") {
+                    settings.cipherType = CipherType::Vigenere;
                 } else {
                     std::cerr << "[error] unknown cipher '"
                               << cmdLineArgs[i + 1] << "'\n";
