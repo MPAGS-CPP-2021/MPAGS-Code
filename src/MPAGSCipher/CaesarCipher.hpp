@@ -43,8 +43,17 @@ class CaesarCipher : public Cipher {
      * \param cipherMode whether to encrypt or decrypt the input text
      * \return the result of applying the cipher to the input text
      */
-    std::string applyCipher(const std::string& inputText,
+    std::string applyCipher(std::string inputText,
                             const CipherMode cipherMode) const override;
+
+    /**
+     * \brief Apply the cipher to the provided single character
+     * 
+     * \param inputChar the character to encrypt or decrypt
+     * \param cipherMode whether to encrypt or decrypt the input
+     * \return the result of applying the cipher to the input
+     */
+    char applyCipher(const char inputChar, const CipherMode cipherMode) const;
 
   private:
     /// The cipher key, essentially a constant shift to be applied
