@@ -42,6 +42,8 @@ class VigenereCipher : public Cipher {
     /**
      * \brief Apply the cipher to the provided text
      *
+     * This version copies the input string
+     *
      * \param inputText the text to encrypt or decrypt
      * \param cipherMode whether to encrypt or decrypt the input text
      * \return the result of applying the cipher to the input text
@@ -49,7 +51,28 @@ class VigenereCipher : public Cipher {
     std::string applyCipher(const std::string& inputText,
                             const CipherMode cipherMode) const override;
 
+    /**
+     * \brief Apply the cipher to the provided text
+     *
+     * This version moves the input string
+     *
+     * \param inputText the text to encrypt or decrypt
+     * \param cipherMode whether to encrypt or decrypt the input text
+     * \return the result of applying the cipher to the input text
+     */
+    std::string applyCipher(std::string&& inputText,
+                            const CipherMode cipherMode) const override;
+
   private:
+    /**
+     * \brief The common implementation for the applyCipher overloads
+     *
+     * \param [in,out] inputText the text to encrypt or decrypt
+     * \param [in] cipherMode whether to encrypt or decrypt the input text
+     */
+    void applyCipherImpl(std::string& inputText,
+                         const CipherMode cipherMode) const;
+
     /// The cipher key
     std::string key_{""};
 
