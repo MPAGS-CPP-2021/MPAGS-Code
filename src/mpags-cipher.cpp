@@ -20,11 +20,15 @@ int main(int argc, char* argv[])
         false, false, "", "", "", CipherMode::Encrypt, CipherType::Caesar};
 
     // Process command line arguments
-    const bool cmdLineStatus{processCommandLine(cmdLineArgs, settings)};
+    try {
+        processCommandLine(cmdLineArgs, settings);
 
-    // Any failure in the argument processing means we can't continue
-    // Use a non-zero return value to indicate failure
-    if (!cmdLineStatus) {
+    } catch (const MissingArgument& e) {
+        std::cerr << "[error] Missing argument: " << e.what() << std::endl;
+        return 1;
+
+    } catch (const UnknownArgument& e) {
+        std::cerr << "[error] Unknown argument: " << e.what() << std::endl;
         return 1;
     }
 
@@ -32,22 +36,29 @@ int main(int argc, char* argv[])
     if (settings.helpRequested) {
         // Line splitting for readability
         std::cout
-            << "Usage: mpags-cipher [-h/--help] [--version] [-i <file>] [-o <file>] [-c <cipher>] [-k <key>] [--encrypt/--decrypt]\n\n"
+            << "Usage: mpags-cipher [-i/--infile <file>] [-o/--outfile <file>] [-c/--cipher <cipher>] [-k/--key <key>] [--encrypt/--decrypt]\n\n"
             << "Encrypts/Decrypts input alphanumeric text using classical ciphers\n\n"
             << "Available options:\n\n"
-            << "  -h|--help        Print this help message and exit\n\n"
-            << "  --version        Print version information\n\n"
-            << "  -i FILE          Read text to be processed from FILE\n"
-            << "                   Stdin will be used if not supplied\n\n"
-            << "  -o FILE          Write processed text to FILE\n"
-            << "                   Stdout will be used if not supplied\n\n"
-            << "                   Stdout will be used if not supplied\n\n"
-            << "  -c CIPHER        Specify the cipher to be used to perform the encryption/decryption\n"
-            << "                   CIPHER can be caesar, playfair, or vigenere - caesar is the default\n\n"
-            << "  -k KEY           Specify the cipher KEY\n"
-            << "                   A null key, i.e. no encryption, is used if not supplied\n\n"
-            << "  --encrypt        Will use the cipher to encrypt the input text (default behaviour)\n\n"
-            << "  --decrypt        Will use the cipher to decrypt the input text\n\n"
+            << "  -h|--help\n"
+            << "                      Print this help message and exit\n\n"
+            << "  -v|--version\n"
+            << "                      Print version information\n\n"
+            << "  -i|--infile FILE\n"
+            << "                      Read text to be processed from FILE\n"
+            << "                      Stdin will be used if not supplied\n\n"
+            << "  -o|--outfile FILE\n"
+            << "                      Write processed text to FILE\n"
+            << "                      Stdout will be used if not supplied\n\n"
+            << "  -c|--cipher CIPHER\n"
+            << "                      Specify the cipher to be used to perform the encryption/decryption\n"
+            << "                      CIPHER can be caesar, playfair or vigenere - caesar is the default\n\n"
+            << "  -k|--key KEY\n"
+            << "                      Specify the cipher KEY\n"
+            << "                      A null key, i.e. no encryption, is used if not supplied\n\n"
+            << "  --encrypt\n"
+            << "                      Will use the cipher to encrypt the input text (default behaviour)\n\n"
+            << "  --decrypt\n"
+            << "                      Will use the cipher to decrypt the input text\n\n"
             << std::endl;
         // Help requires no further action, so return from main
         // with 0 used to indicate success
@@ -100,7 +111,8 @@ int main(int argc, char* argv[])
     }
 
     // Run the cipher on the input text, specifying whether to encrypt/decrypt
-    const std::string outputText{cipher->applyCipher(inputText, settings.cipherMode)};
+    const std::string outputText{
+        cipher->applyCipher(inputText, settings.cipherMode)};
 
     // Output the encrypted/decrypted text to stdout/file
     if (!settings.outputFile.empty()) {

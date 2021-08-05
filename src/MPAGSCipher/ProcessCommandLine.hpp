@@ -4,6 +4,7 @@
 #include "CipherMode.hpp"
 #include "CipherType.hpp"
 
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -34,13 +35,45 @@ struct ProgramSettings {
 };
 
 /**
+ * \class MissingArgument
+ * \brief Exception object indicating a missing command-line argument
+ *
+ * Exception object to indicate that a command-line option flag is not followed by the expected argument
+ */
+class MissingArgument : public std::invalid_argument {
+  public:
+    /** 
+     * \brief Construct a MissingArgument exception
+     * \param what the diagnostic message
+     */
+    MissingArgument(const std::string& what) : std::invalid_argument(what) {}
+};
+
+/**
+ * \class UnknownArgument
+ * \brief Exception object indicating an unknown command-line argument
+ *
+ * Exception object to indicate that an unexpected command-line argument has been encountered
+ */
+class UnknownArgument : public std::invalid_argument {
+  public:
+    /** 
+     * \brief Construct a UnknownArgument exception
+     * \param what the diagnostic message
+     */
+    UnknownArgument(const std::string& what) : std::invalid_argument(what) {}
+};
+
+/**
  * \brief Processes the command-line arguments and modifies accordingly the program settings
  *
  * \param cmdLineArgs the command-line arguments to be processed
  * \param settings the program settings to be modified based upon the arguments received
- * \return true if the arguments could be successfully parsed, false otherwise
+ *
+ * \exception MissingArgument will be emitted if an expected argument is not found during parsing
+ * \exception UnknownArgument will be emitted if an argument encountered during parsing is not recognised
  */
-bool processCommandLine(const std::vector<std::string>& cmdLineArgs,
+void processCommandLine(const std::vector<std::string>& cmdLineArgs,
                         ProgramSettings& settings);
 
 #endif    // MPAGSCIPHER_PROCESSCOMMANDLINE_HPP
