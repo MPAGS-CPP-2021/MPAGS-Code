@@ -17,6 +17,9 @@
  *
  * \param type the concrete type of of cipher to be constructed
  * \param key the key with which to construct the cipher
+ * 
+ * \exception InvalidKey will be emitted if the supplied key is not valid for the given cipher
+ * 
  * \return the newly constructed cipher
  */
 std::unique_ptr<Cipher> cipherFactory(const CipherType type,
