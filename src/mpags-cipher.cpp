@@ -5,7 +5,9 @@
 #include "TransformChar.hpp"
 
 #include <cctype>
+#include <chrono>
 #include <fstream>
+#include <future>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -116,9 +118,67 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // Run the cipher on the input text, specifying whether to encrypt/decrypt
-    const std::string outputText{
-        cipher->applyCipher(inputText, settings.cipherMode)};
+    // Placeholder for the output text
+    std::string outputText{""};
+
+    // Multi-threading of the CaesarCipher encryption
+    if (settings.cipherType == CipherType::Caesar) {
+        // TODO: the number of threads should be configurable at the command line!
+        constexpr std::size_t numThreads{4};
+        std::vector<std::string> threadText;
+        threadText.resize(numThreads);
+        std::vector<std::future<std::string>> futures;
+        futures.reserve(numThreads);
+
+        // Make sure the chunk size * number of threads will cover the whole inputText
+        // If the input is very small then we'll over cover, hence the try-catch around substr below
+        const std::size_t inputSize{inputText.size()};
+        const std::size_t chunkSize{(inputSize % numThreads)
+                                        ? (1 + inputSize / numThreads)
+                                        : (inputSize / numThreads)};
+
+        // Create the threads
+        for (std::size_t i{0}; i < numThreads; i++) {
+            // Get the chunk of text for this thread
+            try {
+                threadText[i] = inputText.substr(i * chunkSize, chunkSize);
+            } catch (std::out_of_range& e) {
+                // We've already covered the whole string, so can break out
+                break;
+            }
+
+            // Start the thread with the given lambda - need to capture the index by value
+            // as otherwise it will have changed in the next loop iteration
+            futures.push_back(std::async(
+                std::launch::async, [&threadText, i, &cipher, &settings]() {
+                    return cipher->applyCipher(threadText[i],
+                                               settings.cipherMode);
+                }));
+        }
+
+        // Now wait for each thread to finish
+        bool complete{false};
+        do {
+            // Set the flag to completed and set it back if we find incomplete threads
+            complete = true;
+            for (auto& future : futures) {
+                auto status = future.wait_for(std::chrono::seconds(10));
+                if (status != std::future_status::ready) {
+                    complete = false;
+                }
+            }
+        } while (!complete);
+
+        // Concatenate all the output text
+        for (auto& future : futures) {
+            outputText += future.get();
+        }
+
+    } else {
+        // For the other ciphers, run synchronously
+        // Run the cipher on the input text, specifying whether to encrypt/decrypt
+        outputText = cipher->applyCipher(inputText, settings.cipherMode);
+    }
 
     // Output the encrypted/decrypted text to stdout/file
     if (!settings.outputFile.empty()) {
