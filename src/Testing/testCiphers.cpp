@@ -2,29 +2,13 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-#include <map>
 #include <string>
+#include <vector>
 
-#include "CaesarCipher.hpp"
 #include "Cipher.hpp"
+#include "CipherFactory.hpp"
 #include "CipherMode.hpp"
 #include "CipherType.hpp"
-#include "PlayfairCipher.hpp"
-#include "VigenereCipher.hpp"
-
-std::map<CipherType, std::string> plainText{
-    {CipherType::Caesar, "HELLOWORLD"},
-    {CipherType::Playfair,
-     "BOBISXSOMESORTOFIUNIORCOMPLEXQXENOPHONEONEZEROTHINGZ"},
-    {CipherType::Vigenere,
-     "THISISQUITEALONGMESSAGESOTHEKEYWILLNEEDTOREPEATAFEWTIMES"}};
-
-std::map<CipherType, std::string> cipherText{
-    {CipherType::Caesar, "ROVVYGYBVN"},
-    {CipherType::Playfair,
-     "FHIQXLTLKLTLSUFNPQPKETFENIOLVSWLTFIAFTLAKOWATEQOKPPA"},
-    {CipherType::Vigenere,
-     "ALTDWZUFTHLEWZBNQPDGHKPDCALPVSFATWZUIPOHVVPASHXLQSDXTXSZ"}};
 
 bool testCipher(const Cipher& cipher, const CipherMode mode,
                 const std::string& inputText, const std::string& outputText)
@@ -32,32 +16,38 @@ bool testCipher(const Cipher& cipher, const CipherMode mode,
     return cipher.applyCipher(inputText, mode) == outputText;
 }
 
-TEST_CASE("Cipher encryption", "[ciphers]")
+TEST_CASE("Cipher encryption/decryption", "[ciphers]")
 {
-    CaesarCipher cc{10};
-    PlayfairCipher pc{"hello"};
-    VigenereCipher vc{"hello"};
+    std::vector<std::unique_ptr<Cipher>> ciphers;
+    std::vector<std::string> plainText;
+    std::vector<std::string> cipherText;
+    std::vector<std::string> decryptText;
 
-    REQUIRE(testCipher(cc, CipherMode::Encrypt, plainText[CipherType::Caesar],
-                       cipherText[CipherType::Caesar]));
-    REQUIRE(testCipher(pc, CipherMode::Encrypt, plainText[CipherType::Playfair],
-                       cipherText[CipherType::Playfair]));
-    REQUIRE(testCipher(vc, CipherMode::Encrypt, plainText[CipherType::Vigenere],
-                       cipherText[CipherType::Vigenere]));
-}
+    ciphers.push_back(cipherFactory(CipherType::Caesar, "10"));
+    plainText.push_back("HELLOWORLD");
+    cipherText.push_back("ROVVYGYBVN");
+    decryptText.push_back("HELLOWORLD");
 
-TEST_CASE("Cipher decryption", "[ciphers]")
-{
-    CaesarCipher cc{10};
-    PlayfairCipher pc{"hello"};
-    VigenereCipher vc{"hello"};
+    ciphers.push_back(cipherFactory(CipherType::Playfair, "hello"));
+    plainText.push_back("BOBISSOMESORTOFJUNIORCOMPLEXXENOPHONEONEZEROTHING");
+    cipherText.push_back(
+        "FHIQXLTLKLTLSUFNPQPKETFENIOLVSWLTFIAFTLAKOWATEQOKPPA");
+    decryptText.push_back(
+        "BOBISXSOMESORTOFIUNIORCOMPLEXQXENOPHONEONEZEROTHINGZ");
 
-    REQUIRE(testCipher(cc, CipherMode::Decrypt, cipherText[CipherType::Caesar],
-                       plainText[CipherType::Caesar]));
-    REQUIRE(testCipher(pc, CipherMode::Decrypt,
-                       cipherText[CipherType::Playfair],
-                       plainText[CipherType::Playfair]));
-    REQUIRE(testCipher(vc, CipherMode::Decrypt,
-                       cipherText[CipherType::Vigenere],
-                       plainText[CipherType::Vigenere]));
+    ciphers.push_back(cipherFactory(CipherType::Vigenere, "hello"));
+    plainText.push_back(
+        "THISISQUITEALONGMESSAGESOTHEKEYWILLNEEDTOREPEATAFEWTIMES");
+    cipherText.push_back(
+        "ALTDWZUFTHLEWZBNQPDGHKPDCALPVSFATWZUIPOHVVPASHXLQSDXTXSZ");
+    decryptText.push_back(
+        "THISISQUITEALONGMESSAGESOTHEKEYWILLNEEDTOREPEATAFEWTIMES");
+
+    for (size_t i{0}; i < ciphers.size(); ++i) {
+        REQUIRE(ciphers[i]);
+        REQUIRE(testCipher(*ciphers[i], CipherMode::Encrypt, plainText[i],
+                           cipherText[i]));
+        REQUIRE(testCipher(*ciphers[i], CipherMode::Decrypt, cipherText[i],
+                           decryptText[i]));
+    }
 }
